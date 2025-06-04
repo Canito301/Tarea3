@@ -1,4 +1,4 @@
-package org.Tarea1;
+package org.Tarea3;
 
 /**
  * Excepción personalizada que indica que no hay moneda o que la moneda es inválida.

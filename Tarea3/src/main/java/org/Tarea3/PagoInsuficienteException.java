@@ -1,4 +1,4 @@
-package org.Tarea1;
+package org.Tarea3;
 
 /**
  * Excepción personalizada que indica que el pago no alcanzó para comprar el producto.

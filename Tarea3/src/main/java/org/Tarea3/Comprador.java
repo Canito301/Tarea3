@@ -1,4 +1,4 @@
-package org.Tarea1;
+package org.Tarea3;
 
 /**
  * Clase que representa a un comprador que interactúa con un expendedor para adquirir un producto.

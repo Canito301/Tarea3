@@ -1,4 +1,4 @@
-package org.Tarea1;
+package org.Tarea3;
 /**
  * Clase abstracta que representa un dulce como tipo de producto.
  * <p>

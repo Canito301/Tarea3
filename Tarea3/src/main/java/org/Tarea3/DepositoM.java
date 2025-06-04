@@ -1,4 +1,4 @@
-package org.Tarea1;
+package org.Tarea3;
 
 /**
  * Clase que representa un depósito para almacenar objetos de tipo {@link Moneda}.

@@ -1,4 +1,4 @@
-package org.Tarea1;
+package org.Tarea3;
 
 /**
  * Clase abstracta que representa un producto identificado por un número de serie.

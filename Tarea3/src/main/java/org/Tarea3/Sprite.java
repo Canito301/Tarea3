@@ -1,4 +1,4 @@
-package org.Tarea1;
+package org.Tarea3;
 
 /**
  * Subclase que representa un tipo de bebida específica (Sprite).

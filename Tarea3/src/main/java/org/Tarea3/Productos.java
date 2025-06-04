@@ -1,4 +1,4 @@
-package org.Tarea1;
+package org.Tarea3;
 
 /**
  * Enum que representa los productos disponibles, junto con su código y precio.
