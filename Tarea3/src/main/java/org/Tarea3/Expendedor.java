@@ -1,5 +1,6 @@
 package org.Tarea3;
-
+import java.util.Collections;
+import java.util.ArrayList;
 /**
  * Clase que representa un expendedor de bebidas y dulces.
  * * <p>
@@ -29,6 +30,9 @@ public class Expendedor{
     /** Depósito de bebidas Sprite. */
     private Deposito<Bebida> sprite;
 
+    /** Depósito de monedas usadas en compras exitosas. */
+    private Deposito<Moneda> monedasPagadas;
+
     /** Depósito de monedas que serán el vuelto. */
     private Deposito<Moneda> monVu;
 
@@ -44,7 +48,7 @@ public class Expendedor{
         this.coca = new DepositoB();
         this.sprite = new DepositoB();
         this.fanta = new DepositoB();
-
+        this.monedasPagadas = new DepositoM();
         this.monVu = new DepositoM();
 
         this.super8 = new DepositoD();
@@ -66,11 +70,37 @@ public class Expendedor{
     }
 
     /**
+     * Calcula y agrega monedas de vuelto al depósito hasta cubrir el exceso del pago.
+     * Usa monedas de 1000, 500 y 100 para minimizar la cantidad de monedas.
+     *
+     * @param valorTotal el valor total de las monedas entregadas por el usuario.
+     */
+    private void calcularVuelto(int valorTotal) {
+        int valor = valorTotal - precio;
+
+        // Calcular monedas de 1000
+        while (valor >= 1000) {
+            monVu.addProducto(new Moneda1000());
+            valor -= 1000;
+        }
+        // Calcular monedas de 500
+        while (valor >= 500) {
+            monVu.addProducto(new Moneda500());
+            valor -= 500;
+        }
+        // Calcular monedas de 100
+        while (valor >= 100) {
+            monVu.addProducto(new Moneda100());
+            valor -= 100;
+        }
+    }
+
+    /**
      * Agrega monedas de vuelto al depósito hasta cubrir lo que se pasó del pago del usuario.
      *
      * @param m la moneda entregada por el usuario.
      */
-
+    /*
     public void actualizar(Moneda m){
         int valor = m.getValor() - precio;
         int suma = 0;
@@ -79,7 +109,7 @@ public class Expendedor{
             monVu.addProducto(monedan);
             suma += 100;
         }
-    }
+    }*/
 
     /**
      * Realiza la compra de un producto determinado usando una moneda.
@@ -92,20 +122,39 @@ public class Expendedor{
      * @throws NoHayProductoException si no hay stock del producto seleccionado o el tipo no existe.
      * @throws PagoIncorrectoException si la moneda es nula o inválida. */
 
-    public Producto comprarProducto(Moneda m, int tipo) throws PagoInsuficienteException, NoHayProductoException, PagoIncorrectoException {
+    public Producto comprarProducto(ArrayList<Moneda> monedas, int tipo) throws PagoInsuficienteException, NoHayProductoException, PagoIncorrectoException {
         Producto producto = null;
         Productos elemento = Productos.obtenerProducto(tipo);
 
-        //Si moneda es nula
-        if (m == null) {
+        // Verificar que todas las monedas sean válidas
+        if (monedas == null || monedas.isEmpty()) {
             throw new PagoIncorrectoException();
         }
-        //Si moneda es menor que el valor del producto.
-        if (m.getValor() < elemento.getPrecio()) {
-            monVu.addProducto(m);
+        for (Moneda m : monedas) {
+            if (m == null) {
+                for (Moneda moneda : monedas) {
+                    if (moneda != null) {
+                        monVu.addProducto(moneda);
+                    }
+                }
+                throw new PagoIncorrectoException();
+            }
+        }
+        // Calcular el valor total de las monedas
+        int valorTotal = 0;
+        for (Moneda m : monedas) {
+            valorTotal += m.getValor();
+        }
+
+        // Verificar si el valor total es suficiente
+        if (valorTotal < elemento.getPrecio()) {
+            for (Moneda m : monedas) {
+                monVu.addProducto(m); // Guardar todas las monedas en el depósito de vuelto
+            }
             throw new PagoInsuficienteException();
         }
-        //Cuando si puede acceder, con esto obtiene el producto.
+
+        // Obtener el producto
         switch (elemento) {
             case COCACOLA:
                 producto = coca.getProducto();
@@ -127,31 +176,42 @@ public class Expendedor{
                 producto = super8.getProducto();
                 precio = Productos.SUPER8.getPrecio();
                 break;
-                //No había del producto escogido.
             default:
-                monVu.addProducto(m);
+                for (Moneda m : monedas) {
+                    monVu.addProducto(m);
+                }
                 throw new NoHayProductoException();
-
         }
-        //No existe el producto seleccionado (no se usa en este caso).
+
+        // No existe el producto seleccionado
         if (producto == null) {
-            monVu.addProducto(m);
+            for (Moneda m : monedas) {
+                monVu.addProducto(m);
+            }
             throw new NoHayProductoException();
         }
-        //Si cumple la condición para comprar, que devuelva el vuelto.
-        if (m.getValor() >= precio) {
-            actualizar(m);
+
+        // Almacenar monedas en el depósito de compras exitosas
+        for (Moneda m : monedas) {
+            monedasPagadas.addProducto(m);
         }
-        //Retorna el producto obtenido.
+
+        // Calcular y agregar el vuelto
+        calcularVuelto(valorTotal);
         return producto;
     }
-
     /**
-     * Obtiene una moneda del depósito de vuelto.
+     * Obtiene todas las monedas del depósito de vuelto como una lista ordenada.
      *
-     * @return una moneda del vuelto o {@code null} si no hay más. */
-
-    public Moneda getVuelto(){
-        return monVu.getProducto();
+     * @return una lista ordenada de monedas del vuelto, o una lista vacía si no hay monedas.
+     */
+    public ArrayList<Moneda> getVueltoList() {
+        ArrayList<Moneda> vuelto = new ArrayList<>();
+        Moneda moneda;
+        while ((moneda = monVu.getProducto()) != null) {
+            vuelto.add(moneda);
+        }
+        Collections.sort(vuelto); // Ordenar por valor usando Comparable
+        return vuelto;
     }
 }

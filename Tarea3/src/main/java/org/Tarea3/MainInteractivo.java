@@ -11,6 +11,19 @@ import java.awt.*;
  *</p>
  * @author Leonardo Guerrero
  */
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+
+/**
+ * Clase principal que simula una máquina expendedora, nos apoyamos en ChatGPT para implementar una interfaz gráfica
+ * utilizando Java Swing.
+ * <p>
+ * Permite al usuario seleccionar productos, ingresar valores de monedas por teclado y recibir vuelto.
+ * Se muestran botones con imágenes representativas de los productos.
+ * </p>
+ * @author Leonardo Guerrero
+ */
 public class MainInteractivo extends JFrame {
 
     /**
@@ -26,10 +39,7 @@ public class MainInteractivo extends JFrame {
      * los productos disponibles en la máquina expendedora junto con un botón de salida para el usuario.
      * </p>
      */
-
     public MainInteractivo() {
-        //Todos los set son para la interfaz, visual: El título, la salida,
-        // sus medidas y el color respectivamente.
         setTitle("Máquina Expendedora");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(600, 400);
@@ -37,7 +47,6 @@ public class MainInteractivo extends JFrame {
 
         expendedor = new Expendedor(2);
 
-        //Se agregan las imágenes de los productos (sacadas de google).
         agregarProducto("CocaCola", 1, "/img/cocacola.png");
         agregarProducto("Sprite", 2, "/img/sprite.png");
         agregarProducto("Fanta", 3, "/img/fanta.png");
@@ -45,16 +54,15 @@ public class MainInteractivo extends JFrame {
         agregarProducto("Super8", 5, "/img/super8.png");
         agregarBotonSalir();
 
-        //Las deja visibles.
         setVisible(true);
     }
 
     /**
      * Agrega un botón con imagen y etiqueta correspondiente a un producto.
-     * Al presionar el botón, se solicita una moneda al usuario e intenta realizar la compra.
+     * Al presionar el botón, se solicita una lista de monedas al usuario e intenta realizar la compra.
      * @param nombre Nombre del producto seleccionado.
      * @param idProducto Identificador del producto (utilizado por el {@code Expendedor}).
-     * @param rutaImagen Ruta al archivo de imagen del producto (debe estar incluido en el proyecto o no se va a ver).
+     * @param rutaImagen Ruta al archivo de imagen del producto.
      */
     private void agregarProducto(String nombre, int idProducto, String rutaImagen) {
         JPanel panel = new JPanel();
@@ -68,41 +76,68 @@ public class MainInteractivo extends JFrame {
             icon = new ImageIcon(scaledImg);
         } else {
             System.err.println("No se encontró la imagen: " + rutaImagen);
-            icon = new ImageIcon(); // ícono vacío
+            icon = new ImageIcon();
         }
 
         JButton boton = new JButton(icon);
         boton.setToolTipText(nombre);
 
         boton.addActionListener(e -> {
-            //**ACTUA COMO SCANNER, pero se utiliza porque se usa interfaz gráfica.**
             String input = JOptionPane.showInputDialog(this,
-                    "Ingresa el valor de la moneda (100, 500, 1000):");
+                    "Ingresa los valores de las monedas (100, 500, 1000) separados por comas:");
 
-            Moneda moneda;
-
+            ArrayList<Moneda> monedas = new ArrayList<>();
             try {
-                int valor = Integer.parseInt(input);
-                moneda = switch (valor) {
-                    case 100 -> new Moneda100();
-                    case 500 -> new Moneda500();
-                    case 1000 -> new Moneda1000();
-                    default -> null;
-                };
+                if (input != null && !input.trim().isEmpty()) {
+                    String[] valores = input.split(",");
+                    for (String valorStr : valores) {
+                        int valor = Integer.parseInt(valorStr.trim());
+                        Moneda moneda = switch (valor) {
+                            case 100 -> new Moneda100();
+                            case 500 -> new Moneda500();
+                            case 1000 -> new Moneda1000();
+                            default -> null;
+                        };
+                        if (moneda == null) {
+                            throw new PagoIncorrectoException();
+                        }
+                        monedas.add(moneda);
+                    }
+                } else {
+                    monedas = null;
+                }
             } catch (Exception ex) {
-                moneda = null;
+                monedas = null;
             }
 
             try {
-                Comprador comprador = new Comprador(moneda, idProducto, expendedor);
+                Comprador comprador = new Comprador(monedas, idProducto, expendedor);
+                StringBuilder vueltoStr = new StringBuilder("[");
+                ArrayList<Moneda> vuelto = comprador.getVueltoList();
+                for (int i = 0; i < vuelto.size(); i++) {
+                    vueltoStr.append(vuelto.get(i).getValor());
+                    if (i < vuelto.size() - 1) {
+                        vueltoStr.append(", ");
+                    }
+                }
+                vueltoStr.append("] pesos");
                 JOptionPane.showMessageDialog(this,
                         "Consumiste: " + comprador.queBebiste() +
-                                "\nVuelto: " + comprador.cuantoVuelto() + " pesos");
+                                "\nVuelto: " + vueltoStr +
+                                "\nVuelto total: " + comprador.cuantoVuelto() + " pesos");
             } catch (Exception ex) {
-                Moneda vuelto = expendedor.getVuelto();
+                StringBuilder vueltoStr = new StringBuilder("[");
+                ArrayList<Moneda> vuelto = expendedor.getVueltoList();
+                for (int i = 0; i < vuelto.size(); i++) {
+                    vueltoStr.append(vuelto.get(i).getValor());
+                    if (i < vuelto.size() - 1) {
+                        vueltoStr.append(", ");
+                    }
+                }
+                vueltoStr.append("] pesos");
                 JOptionPane.showMessageDialog(this,
                         "Error: " + ex.getMessage() +
-                                "\nVuelto: " + (vuelto != null ? vuelto.getValor() : 0));
+                                "\nVuelto: " + vueltoStr);
             }
         });
 
@@ -116,7 +151,7 @@ public class MainInteractivo extends JFrame {
     }
 
     /**
-     * Agrega un botón de salida que permite cerrar la aplicación con confirmación (por si cierra por error).
+     * Agrega un botón de salida que permite cerrar la aplicación con confirmación.
      */
     private void agregarBotonSalir() {
         JButton salir = new JButton("Salir");
@@ -136,7 +171,6 @@ public class MainInteractivo extends JFrame {
      *
      * @param args Argumentos de línea de comandos (no utilizados).
      */
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MainInteractivo::new);
     }

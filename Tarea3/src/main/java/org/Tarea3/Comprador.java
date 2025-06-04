@@ -1,11 +1,13 @@
 package org.Tarea3;
 
+import java.util.ArrayList;
+
 /**
  * Clase que representa a un comprador que interactúa con un expendedor para adquirir un producto.
  * <p>
- * El comprador entrega una {@link Moneda}, elige un producto identificado por un número,
+ * El comprador entrega una lista de {@link Moneda}, elige un producto identificado por un número,
  * y el {@link Expendedor} gestiona la transacción. La clase almacena el resultado de consumir el producto
- * y el total del vuelto recibido.
+ * y la lista de monedas del vuelto recibido.
  * </p>
  *
  * Maneja posibles excepciones relacionadas a comprar:
@@ -14,8 +16,7 @@ package org.Tarea3;
  * @author Francisco Fuentealba
  * @author Leonardo Guerrero
  */
-
-public class Comprador{
+public class Comprador {
 
     /**
      * String que representa el sonido producido al consumir el producto.
@@ -23,37 +24,39 @@ public class Comprador{
     private String sonido;
 
     /**
-     * Entero que representa el vuelto que se entregará al usuario luego de comprar.
+     * Lista de monedas que representan el vuelto recibido tras la compra.
      */
-    private int vuelto;
+    private ArrayList<Moneda> vuelto;
+
+    /**
+     * Entero que representa el valor total del vuelto.
+     */
+    private int vueltoTotal;
 
     /**
      * Constructor que realiza la compra de un producto desde un expendedor.
      *
-     * @param m    la moneda que se utiliza para pagar.
+     * @param monedas la lista de monedas que se utilizan para pagar.
      * @param cual el identificador del producto deseado.
-     * @param exp  el expendedor desde el cual se adquiere el producto.
+     * @param exp el expendedor desde el cual se adquiere el producto.
      *
-     * @throws PagoInsuficienteException si la moneda no cubre el precio del producto.
+     * @throws PagoInsuficienteException si el valor total de las monedas no cubre el precio del producto.
      * @throws NoHayProductoException si no hay stock del producto solicitado.
-     * @throws PagoIncorrectoException si la moneda ingresada es nula o inválida.
+     * @throws PagoIncorrectoException si alguna moneda es nula o inválida.
      */
-    public Comprador(Moneda m, int cual, Expendedor exp) throws PagoInsuficienteException, NoHayProductoException, PagoIncorrectoException {
-
-        vuelto = 0;
+    public Comprador(ArrayList<Moneda> monedas, int cual, Expendedor exp) throws PagoInsuficienteException, NoHayProductoException, PagoIncorrectoException {
+        vuelto = new ArrayList<>();
+        vueltoTotal = 0;
         Producto aux2 = null;
 
-        // Limpia el depósito de vuelto antes de comenzar la compra.
-        do {
-            exp.getVuelto();
-        } while (exp.getVuelto() != null);
-        aux2 = exp.comprarProducto(m, cual);
+        // Limpia el depósito de vuelto antes de comenzar la compra
+        exp.getVueltoList(); // Vacia el depósito para evitar acumulación
+        aux2 = exp.comprarProducto(monedas, cual);
 
-        Moneda auxM = m;
-        if (auxM == null){
+        if (monedas == null || monedas.isEmpty()) {
             aux2 = null;
         }
-        if(aux2 == null){
+        if (aux2 == null) {
             sonido = null;
         } else {
             if (aux2 instanceof Bebida) {
@@ -63,28 +66,29 @@ public class Comprador{
             }
         }
 
-        // Suma el total del vuelto.
-        while(true){
-            Moneda aux = exp.getVuelto();
-            if(aux==null){
-                break;
-            } else {
-                vuelto += aux.getValor();
-                if(aux2 == null){
-                    vuelto = aux.getValor();
-                    break;
-                }
-            }
-
+        // Obtener la lista de monedas del vuelto (o las monedas originales en caso de error)
+        vuelto = exp.getVueltoList();
+        for (Moneda m : vuelto) {
+            vueltoTotal += m.getValor();
         }
     }
+
     /**
      * Devuelve un String representando lo que consumió el comprador.
      *
      * @return el sonido de la bebida o dulce, o {@code null} si no se consumió nada.
      */
-    public String queBebiste(){
+    public String queBebiste() {
         return sonido;
+    }
+
+    /**
+     * Devuelve la lista ordenada de monedas que componen el vuelto.
+     *
+     * @return una lista de monedas del vuelto.
+     */
+    public ArrayList<Moneda> getVueltoList() {
+        return new ArrayList<>(vuelto);
     }
 
     /**
@@ -92,7 +96,7 @@ public class Comprador{
      *
      * @return la cantidad de dinero de vuelto.
      */
-    public int cuantoVuelto(){
-        return vuelto;
+    public int cuantoVuelto() {
+        return vueltoTotal;
     }
 }
