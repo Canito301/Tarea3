@@ -16,23 +16,23 @@ public enum Productos {
     /**
      * Producto CocaCola y su precio.
      */
-    COCACOLA(1, 900),
+    COCACOLA(1, 900,"/img/CocaCola.png"),
     /**
      * Producto Sprite y su precio.
      */
-    SPRITE(2, 700),
+    SPRITE(2, 700,"/img/Sprite.png"),
     /**
      * Producto Fanta y su precio.
      */
-    FANTA(3, 800),
+    FANTA(3, 800,"/img/Fanta.png"),
     /**
      * Producto Snickers y su precio.
      */
-    SNICKERS(4, 1000),
+    SNICKERS(4, 1000,"/img/Snickers.png"),
     /**
      * Producto Super8 y su precio.
      */
-    SUPER8(5, 600);
+    SUPER8(5, 600,"/img/Super8.png");
 
     /**
      * Guardará el identificador del producto.
@@ -44,6 +44,9 @@ public enum Productos {
      */
     private int precio = 0;
 
+
+    private String rutaDeImagen;
+
     /**
      * Constructor para inicializar el valor y el precio por producto.
      *
@@ -51,9 +54,10 @@ public enum Productos {
      * @param precio el precio del producto.
      */
 
-    Productos(int i, int precio) {
+    Productos(int i, int precio,String rutaImagen) {
         this.valor = i;
         this.precio = precio;
+        this.rutaDeImagen = rutaImagen;
     }
 
     /**
@@ -71,8 +75,11 @@ public enum Productos {
      * @return el precio del producto.
      */
     public int getPrecio() {
-
         return precio;
+    }
+
+    public String getRutaDeImagen() {
+        return rutaDeImagen;
     }
 
     /**
