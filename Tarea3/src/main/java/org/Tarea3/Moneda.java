@@ -1,57 +1,68 @@
 package org.Tarea3;
 
-import java.io.StringReader;
+import javax.swing.*;
+import java.awt.*;
+import java.util.Random;
+
 /**
- * Clase abstracta que representa una moneda de peso chileno,
- * esta clase implementa la interfaz Comparable para permitir comparar monedas según su valor.
- * @author Francisco Fuentealba
+ * Clase abstracta que representa una moneda con valor y número de serie único.
+ * <p>
+ * Se dibuja como un círculo con color según su valor (100: amarillo, 500: gris, 1000: naranja)
+ * y muestra parte de su número de serie.
+ * </p>
  */
-public abstract class Moneda implements Comparable<Moneda>{
+public abstract class Moneda extends JPanel implements Comparable<Moneda> {
+    /** Número de serie único de la moneda. */
+    private String serie;
+
+    /** Coordenadas x e y para posicionamiento gráfico. */
+    private int x, y;
+
     /**
-     * Constructor de la clase Moneda.
+     * Constructor que genera un número de serie aleatorio.
      */
-    public Moneda(){
-    }
-    /**
-     * Retorna la direccion de la instancia actual de la moneda.
-     * @return la misma instancia de Moneda (this).
-     */
-    public Moneda getSerie(){
-        return this;
+    public Moneda() {
+        Random rand = new Random();
+        serie = String.valueOf(rand.nextInt(1000000000));
     }
 
     /**
-     * Compara esta moneda con otra según su valor.
+     * Devuelve el número de serie y valor de la moneda.
      *
-     * @param otraMoneda la otra moneda con la que se va a comparar.
-     * @return un número negativo si la moneda es menor a otraMoneda,
-     * cero si son iguales,
-     * o un número positivo si la moneda es mayor a otraMoneda.
+     * @return Cadena con el número de serie y valor (e.g., "123456789 100pesos chilenos").
      */
-    @Override
-    public int compareTo(Moneda otraMoneda) {
-        return Integer.compare(this.getValor(), otraMoneda.getValor());
+    public String getSerie() {
+        return serie + " " + getValor() + "pesos chilenos";
     }
 
     /**
-     * Retorna una representación en texto de la moneda, que incluye su número de serie
-     * (derivado de {@link #hashCode()}) y su valor en pesos chilenos
-     * (obtenido desde {@link #getValor()}).
+     * Devuelve el valor de la moneda.
      *
-     * @return una cadena con el número de serie y el valor en pesos chilenos.
-     */
-    @Override
-    public String toString() {
-        return "Número de Serie=" + this.hashCode() + " " + getValor() + "pesos chilenos";
-    }
-
-    /**
-     * Método abstracto que debe ser implementado por las subclases.
-     * para indicar el valor de la moneda en pesos chilenos.
-     * @return el valor de la moneda en pesos chilenos.
+     * @return Valor en pesos.
      */
     public abstract int getValor();
-}
 
+    /**
+     * Compara monedas por su valor.
+     *
+     * @param otra Moneda a comparar.
+     * @return -1, 0 o 1 si esta moneda es menor, igual o mayor que la otra.
+     */
+    @Override
+    public int compareTo(Moneda otra) {
+        return Integer.compare(this.getValor(), otra.getValor());
+    }
+
+    /**
+     * Establece la posición gráfica de la moneda.
+     *
+     * @param x Coordenada x.
+     * @param y Coordenada y.
+     */
+    public void setXY(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
 
 

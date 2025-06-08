@@ -35,6 +35,8 @@ public class Expendedor{
 
     /** Depósito de monedas que serán el vuelto. */
     private Deposito<Moneda> monVu;
+    /** Depósito de producto único*/
+    private Deposito<Producto> depositoProducto;
 
     /** Precio del producto seleccionado en la compra. */
     private int precio;
@@ -50,7 +52,7 @@ public class Expendedor{
         this.fanta = new DepositoB();
         this.monedasPagadas = new DepositoM();
         this.monVu = new DepositoM();
-
+        this.depositoProducto = new Deposito<>();
         this.super8 = new DepositoD();
         this.snickers = new DepositoD();
 
@@ -112,17 +114,16 @@ public class Expendedor{
     }*/
 
     /**
-     * Realiza la compra de un producto determinado usando una moneda.
+     * Realiza la compra de un producto determinado usando una lista de monedas.
      *
-     * @param m la moneda entregada por el usuario.
+     * @param monedas las monedas entregada por el usuario.
      * @param tipo el identificador del producto según el enum {@link Productos}.
-     * @return el producto adquirido.
      *
-     * @throws PagoInsuficienteException si el valor de la moneda es menor al precio del producto.
+     * @throws PagoInsuficienteException si el valor de las monedas es menor al precio del producto.
      * @throws NoHayProductoException si no hay stock del producto seleccionado o el tipo no existe.
-     * @throws PagoIncorrectoException si la moneda es nula o inválida. */
+     * @throws PagoIncorrectoException si las monedas son nulas o invalidas o inválida. */
 
-    public Producto comprarProducto(ArrayList<Moneda> monedas, int tipo) throws PagoInsuficienteException, NoHayProductoException, PagoIncorrectoException {
+    public void comprarProducto(ArrayList<Moneda> monedas, int tipo) throws PagoInsuficienteException, NoHayProductoException, PagoIncorrectoException {
         Producto producto = null;
         Productos elemento = Productos.obtenerProducto(tipo);
 
@@ -197,8 +198,9 @@ public class Expendedor{
         }
 
         // Calcular y agregar el vuelto
+        depositoProducto.addProducto(producto);
         calcularVuelto(valorTotal);
-        return producto;
+
     }
     /**
      * Obtiene todas las monedas del depósito de vuelto como una lista ordenada.
@@ -214,4 +216,82 @@ public class Expendedor{
         Collections.sort(vuelto); // Ordenar por valor usando Comparable
         return vuelto;
     }
+    /**
+     * Rellena los depósitos vacíos con 4 productos de cada tipo.
+     */
+    public void rellenarDepositos() {
+        if (coca.getProducto() == null) {
+            for (int i = 100; i < 104; i++) {
+                coca.addProducto(new CocaCola(i));
+            }
+        }
+        if (sprite.getProducto() == null) {
+            for (int i = 200; i < 204; i++) {
+                sprite.addProducto(new Sprite(i));
+            }
+        }
+        if (fanta.getProducto() == null) {
+            for (int i = 300; i < 304; i++) {
+                fanta.addProducto(new Fanta(i));
+            }
+        }
+        if (snickers.getProducto() == null) {
+            for (int i = 400; i < 404; i++) {
+                snickers.addProducto(new Snickers(i));
+            }
+        }
+        if (super8.getProducto() == null) {
+            for (int i = 500; i < 504; i++) {
+                super8.addProducto(new Super8(i));
+            }
+        }
+    }
+
+    /**
+     * Obtiene el depósito de CocaCola.
+     * @return Depósito de CocaCola.
+     */
+    public Deposito<Bebida> getDepositoCoca() { return coca; }
+
+    /**
+     * Obtiene el depósito de Sprite.
+     * @return Depósito de Sprite.
+     */
+    public Deposito<Bebida> getDepositoSprite() { return sprite; }
+
+    /**
+     * Obtiene el depósito de Fanta.
+     * @return Depósito de Fanta.
+     */
+    public Deposito<Bebida> getDepositoFanta() { return fanta; }
+
+    /**
+     * Obtiene el depósito de Snickers.
+     * @return Depósito de Snickers.
+     */
+    public Deposito<Dulce> getDepositoSnickers() { return snickers; }
+
+    /**
+     * Obtiene el depósito de Super8.
+     * @return Depósito de Super8.
+     */
+    public Deposito<Dulce> getDepositoSuper8() { return super8; }
+
+    /**
+     * Obtiene el depósito de monedas pagadas.
+     * @return Depósito de monedas pagadas.
+     */
+    public Deposito<Moneda> getDepositoMonedasPagadas() { return monedasPagadas; }
+
+    /**
+     * Obtiene el depósito de monedas de vuelto.
+     * @return Depósito de monedas de vuelto.
+     */
+    public Deposito<Moneda> getDepositoMonedasVuelto() { return monVu; }
+
+    /**
+     * Obtiene el depósito de producto comprado.
+     * @return Depósito de producto comprado.
+     */
+    public Deposito<Producto> getDepositoProducto() { return depositoProducto; }
 }

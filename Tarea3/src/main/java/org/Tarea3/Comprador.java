@@ -32,6 +32,21 @@ public class Comprador {
      * Entero que representa el valor total del vuelto.
      */
     private int vueltoTotal;
+    /**
+     * Enum que define los estados cíclicos del comprador para la interfaz gráfica.
+     */
+    public enum EstadoComprador {
+        SELECCIONAR_MONEDA, SELECCIONAR_PRODUCTO, RECOGER_PRODUCTO, RECOGER_VUELTO
+    }
+
+    /** Estado actual del comprador para el flujo gráfico. */
+    private EstadoComprador estado;
+
+
+    /** Producto comprado, pendiente de consumir. */
+    private Producto producto;
+    /** Monedero infinito del comprador. */
+    private ArrayList<Moneda> monedero;
 
     /**
      * Constructor que realiza la compra de un producto desde un expendedor.
@@ -44,25 +59,30 @@ public class Comprador {
      * @throws NoHayProductoException si no hay stock del producto solicitado.
      * @throws PagoIncorrectoException si alguna moneda es nula o inválida.
      */
+
     public Comprador(ArrayList<Moneda> monedas, int cual, Expendedor exp) throws PagoInsuficienteException, NoHayProductoException, PagoIncorrectoException {
         vuelto = new ArrayList<>();
+        monedero = new ArrayList<>();
+        estado = null; // No se usan estados en este flujo
         vueltoTotal = 0;
-        Producto aux2 = null;
-
-        // Limpia el depósito de vuelto antes de comenzar la compra
-        exp.getVueltoList(); // Vacia el depósito para evitar acumulación
-        aux2 = exp.comprarProducto(monedas, cual);
-
-        if (monedas == null || monedas.isEmpty()) {
-            aux2 = null;
+        producto = null;
+        // Inicializar monedero con 5 monedas de cada tipo
+        for (int i = 0; i < 5; i++) {
+            monedero.add(new Moneda100());
+            monedero.add(new Moneda500());
+            monedero.add(new Moneda1000());
         }
-        if (aux2 == null) {
+        // Limpia el depósito de vuelto antes de comenzar la compra
+        exp.getVueltoList();
+        exp.comprarProducto(monedas, cual);
+        producto = exp.getDepositoProducto().getProducto();
+        if (monedas == null || monedas.isEmpty() || producto == null) {
             sonido = null;
         } else {
-            if (aux2 instanceof Bebida) {
-                sonido = ((Bebida) aux2).beber();
-            } else if (aux2 instanceof Dulce) {
-                sonido = ((Dulce) aux2).comer();
+            if (producto instanceof Bebida) {
+                sonido = ((Bebida) producto).beber();
+            } else if (producto instanceof Dulce) {
+                sonido = ((Dulce) producto).comer();
             }
         }
 
@@ -70,33 +90,194 @@ public class Comprador {
         vuelto = exp.getVueltoList();
         for (Moneda m : vuelto) {
             vueltoTotal += m.getValor();
+            monedero.add(m);
+        }
+    }
+    /**
+     * Constructor para uso gráfico, inicializa el comprador con un monedero infinito.
+     */
+    public Comprador() {
+        vuelto = new ArrayList<>();
+        monedero = new ArrayList<>();
+        estado = EstadoComprador.SELECCIONAR_MONEDA;
+        producto = null;
+        // Inicializar monedero con 10 monedas de cada tipo
+        rellenarMonedero();
+    }
+
+    /**
+     * Rellena el monedero con 10 monedas de cada tipo (100, 500, 1000) para mantenerlo infinito.
+     */
+    private void rellenarMonedero() {
+        for (int i = 0; i < 10; i++) {
+            monedero.add(new Moneda100());
+            monedero.add(new Moneda500());
+            monedero.add(new Moneda1000());
         }
     }
 
     /**
-     * Devuelve un String representando lo que consumió el comprador.
+     * Saca una moneda del monedero según el valor especificado.
+     * <p>
+     * Si no hay monedas del valor solicitado, rellena el monedero para mantenerlo infinito.
+     * </p>
      *
-     * @return el sonido de la bebida o dulce, o {@code null} si no se consumió nada.
+     * @param valor Valor de la moneda (100, 500, o 1000).
+     * @return Moneda extraída del monedero.
+     */
+    public Moneda sacarMoneda(int valor) {
+        for (Moneda m : monedero) {
+            if (m.getValor() == valor) {
+                monedero.remove(m);
+                return m;
+            }
+        }
+        // Si no hay monedas del valor, rellenar monedero
+        switch (valor) {
+            case 100:
+                monedero.add(new Moneda100());
+                break;
+            case 500:
+                monedero.add(new Moneda500());
+                break;
+            case 1000:
+                monedero.add(new Moneda1000());
+                break;
+            default:
+                return null; // Valor inválido
+        }
+        Moneda m = monedero.get(monedero.size() - 1);
+        monedero.remove(m);
+        return m;
+    }
+
+    /**
+     * Realiza una compra en el expendedor y actualiza el estado para el flujo gráfico.
+     * <p>
+     * Las monedas son proporcionadas por {@link PanelCompradorPrueba} a partir de las selecciones del usuario,
+     * habiendo sido extraídas del monedero mediante {@link #sacarMoneda(int)}. La validación del pago
+     * es real, pudiendo lanzar excepciones como {@link PagoInsuficienteException} si el valor total es
+     * menor al precio.
+     * </p>
+     *
+     * @param monedas Lista de monedas para pagar, extraídas del monedero.
+     * @param cual    Identificador del producto.
+     * @param exp     Expendedor donde se realiza la compra.
+     * @throws PagoInsuficienteException Si el pago es insuficiente.
+     * @throws NoHayProductoException Si no hay producto disponible.
+     * @throws PagoIncorrectoException Si las monedas son inválidas.
+     */
+    public void realizarCompra(ArrayList<Moneda> monedas, int cual, Expendedor exp) throws PagoInsuficienteException, NoHayProductoException, PagoIncorrectoException {
+        vuelto.clear();
+        vueltoTotal = 0;
+        producto = null;
+
+        exp.getVueltoList();
+        exp.comprarProducto(monedas, cual);
+
+        estado = EstadoComprador.RECOGER_PRODUCTO;
+    }
+
+    /**
+     * Recoge el producto comprado del expendedor y lo consume.
+     *
+     * @param exp Expendedor de donde se recoge el producto.
+     */
+    public void recogerProducto(Expendedor exp) {
+        producto = exp.getDepositoProducto().getProducto();
+        if (producto != null) {
+            if (producto instanceof Bebida) {
+                sonido = ((Bebida) producto).beber();
+            } else if (producto instanceof Dulce) {
+                sonido = ((Dulce) producto).comer();
+            }
+        } else {
+            sonido = null;
+        }
+        estado = EstadoComprador.RECOGER_VUELTO;
+    }
+
+    /**
+     * Recoge el vuelto del expendedor y lo agrega al monedero.
+     * <p>
+     * La lista de monedas es ordenada por valor, como se genera en {@link Expendedor#getVueltoList()}.
+     * </p>
+     *
+     * @param exp Expendedor de donde se recoge el vuelto.
+     */
+    public void recogerVuelto(Expendedor exp) {
+        vuelto = exp.getVueltoList();
+        for (Moneda m : vuelto) {
+            if (m != null) {
+                vueltoTotal += m.getValor();
+                monedero.add(m);
+            }
+        }
+        estado = EstadoComprador.SELECCIONAR_MONEDA;
+    }
+
+    /**
+     * Avanza al siguiente estado cíclico para el flujo gráfico.
+     */
+    public void avanzarEstado() {
+        switch (estado) {
+            case SELECCIONAR_MONEDA:
+                estado = EstadoComprador.SELECCIONAR_PRODUCTO;
+                break;
+            case SELECCIONAR_PRODUCTO:
+                estado = EstadoComprador.RECOGER_PRODUCTO;
+                break;
+            case RECOGER_PRODUCTO:
+                estado = EstadoComprador.RECOGER_VUELTO;
+                break;
+            case RECOGER_VUELTO:
+                estado = EstadoComprador.SELECCIONAR_MONEDA;
+                break;
+        }
+    }
+
+    /**
+     * Devuelve el sonido de consumir el producto.
+     *
+     * @return Sonido del producto consumido, o null si no se consumió nada.
      */
     public String queBebiste() {
         return sonido;
     }
 
     /**
-     * Devuelve la lista ordenada de monedas que componen el vuelto.
+     * Devuelve la lista ordenada de monedas del vuelto.
      *
-     * @return una lista de monedas del vuelto.
+     * @return Copia de la lista de monedas del vuelto, ordenada por valor.
      */
     public ArrayList<Moneda> getVueltoList() {
         return new ArrayList<>(vuelto);
     }
 
     /**
-     * Devuelve el total del vuelto tras la compra realizada en el expendedor.
+     * Devuelve el valor total del vuelto.
      *
-     * @return la cantidad de dinero de vuelto.
+     * @return Total del vuelto en pesos.
      */
     public int cuantoVuelto() {
         return vueltoTotal;
+    }
+
+    /**
+     * Devuelve el monedero del comprador.
+     *
+     * @return Copia de la lista de monedas en el monedero.
+     */
+    public ArrayList<Moneda> getMonedero() {
+        return new ArrayList<>(monedero);
+    }
+
+    /**
+     * Devuelve el estado actual del comprador.
+     *
+     * @return Estado actual.
+     */
+    public EstadoComprador getEstado() {
+        return estado;
     }
 }

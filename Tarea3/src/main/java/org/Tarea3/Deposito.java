@@ -49,4 +49,8 @@ public class Deposito<T> {
             return lista.remove(0);
         }
     }
+
+    public ArrayList<?> getElementos() {
+        return lista;
+    }
 }
