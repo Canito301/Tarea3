@@ -9,8 +9,10 @@ import javax.imageio.ImageIO;
 public class ProductoVisual extends JPanel {
     private final BufferedImage imagenOriginal;
     private final JLabel etiqueta;
+    private final int tipo;
 
     public ProductoVisual(int numero_producto) {
+        this.tipo = numero_producto;
         setLayout(new BorderLayout());
         setOpaque(false);
 
@@ -22,8 +24,11 @@ public class ProductoVisual extends JPanel {
         etiqueta.setVerticalAlignment(JLabel.CENTER);
         add(etiqueta, BorderLayout.CENTER);
 
-        // Escala inicial por si no se llama a escalarImagen todavía
         escalarImagen(60, 60);
+    }
+
+    public int getTipo() {
+        return tipo;
     }
 
     public void escalarImagen(int ancho, int alto) {
