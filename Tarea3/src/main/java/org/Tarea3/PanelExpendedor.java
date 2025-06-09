@@ -5,22 +5,34 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
+/**
+ * Panel que representa la máquina expendedora y gestiona la interacción con el {@link Comprador}.
+ * <p>
+ * Muestra los productos, botones de selección, y maneja la compra, recogida de productos y vuelto.
+ * Sincroniza el stock visual con las compras y el rellenado de {@link Expendedor}.
+ * </p>
+ */
 public class PanelExpendedor extends JPanel {
     private final Expendedor exp;
+    private final Comprador comprador;
     private final BufferedImage imagenExpendedor;
     private final ArrayList<ProductoVisual> productos = new ArrayList<>();
     private final Map<Integer, ArrayList<ProductoVisual>> productosPorTipo = new HashMap<>();
     private final PanelBotones botones;
     private final PanelComprador panelComprador;
     private final PanelInventario panelInventario;
-
     private ProductoVisual productoEnMano;
-
     private final JButton btnAgregarInventario;
     private final JButton btnRellenarStock;
+    private final JButton btnConfirmarCompra;
+    private final JButton btnRecogerVuelto;
+    private final JLabel valorInsertadoLabel;
+    private final ArrayList<Moneda> monedasSeleccionadas;
+    private int valorInsertado;
 
-    public PanelExpendedor(Expendedor exp, PanelInventario panelInventario) {
+    public PanelExpendedor(Expendedor exp, Comprador comprador, PanelInventario panelInventario) {
         this.exp = exp;
+        this.comprador = comprador;
         this.panelInventario = panelInventario;
 
         imagenExpendedor = UtilsImagen.cargarBuffered("/img/Expendedor.png");
@@ -34,6 +46,27 @@ public class PanelExpendedor extends JPanel {
         panelComprador = new PanelComprador();
         panelComprador.setOpaque(false);
         add(panelComprador);
+
+        monedasSeleccionadas = new ArrayList<>();
+        valorInsertado = 0;
+
+        valorInsertadoLabel = new JLabel("Insertado: $0");
+        valorInsertadoLabel.setFont(new Font("Comic Sans", Font.BOLD, 16));
+        valorInsertadoLabel.setForeground(Color.WHITE);
+        add(valorInsertadoLabel);
+
+        btnConfirmarCompra = new JButton("Confirmar Compra");
+        btnConfirmarCompra.setFont(new Font("Comic Sans", Font.BOLD, 14));
+        btnConfirmarCompra.setBackground(Color.CYAN);
+        btnConfirmarCompra.addActionListener(e -> {
+            if (!monedasSeleccionadas.isEmpty()) {
+                comprador.avanzarEstado();
+                actualizarEstado();
+            } else {
+                JOptionPane.showMessageDialog(this, "Inserta al menos una moneda.");
+            }
+        });
+        add(btnConfirmarCompra);
 
         inicializarProductos();
 
@@ -49,7 +82,7 @@ public class PanelExpendedor extends JPanel {
                     productoEnMano = null;
                     revalidate();
                     repaint();
-                    botones.setBotonesHabilitados(true);
+                    actualizarEstado();
                 } else {
                     JOptionPane.showMessageDialog(this, "Inventario lleno.");
                 }
@@ -59,10 +92,26 @@ public class PanelExpendedor extends JPanel {
         });
         add(btnAgregarInventario);
 
-        // Botón para rellenar stock
         btnRellenarStock = new JButton("Rellenar Stock");
         btnRellenarStock.addActionListener(e -> rellenarStock());
         add(btnRellenarStock);
+
+        btnRecogerVuelto = new JButton("Recoger Vuelto");
+        btnRecogerVuelto.addActionListener(e -> {
+            comprador.recogerVuelto(exp);
+            monedasSeleccionadas.clear();
+            valorInsertado = 0;
+            valorInsertadoLabel.setText("Insertado: $0");
+            panelInventario.actualizarContadorMonedas(comprador.contarMonedas());
+            actualizarEstado();
+        });
+        add(btnRecogerVuelto);
+
+        panelInventario.setMonedaListeners(moneda -> {
+            monedasSeleccionadas.add(moneda);
+            valorInsertado += moneda.getValor();
+            valorInsertadoLabel.setText("Insertado: $" + valorInsertado);
+        }, comprador);
 
         addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentResized(java.awt.event.ComponentEvent evt) {
@@ -75,12 +124,15 @@ public class PanelExpendedor extends JPanel {
         } else {
             setPreferredSize(new Dimension(500, 500));
         }
+
+        actualizarEstado();
     }
 
     private void inicializarProductos() {
         productos.clear();
         productosPorTipo.clear();
 
+        // Inicializar 5 productos por tipo, sincronizado con Expendedor.rellenarDepositos()
         for (int tipo = 1; tipo <= 5; tipo++) {
             ArrayList<ProductoVisual> listaTipo = new ArrayList<>();
             for (int j = 0; j < 5; j++) {
@@ -141,41 +193,58 @@ public class PanelExpendedor extends JPanel {
         int btnAncho = 150;
         int btnAlto = 30;
 
-        btnAgregarInventario.setBounds((int)(compradorX * 3.1), compradorY - btnAlto - 5, btnAncho+100, btnAlto+40);
+        valorInsertadoLabel.setBounds(10, 500, 150, 20);
+        btnConfirmarCompra.setBounds(10, 530, btnAncho, btnAlto);
+        btnAgregarInventario.setBounds(compradorX + compradorAncho + 10, compradorY, btnAncho + 100, btnAlto + 40);
         btnAgregarInventario.setBackground(Color.white);
         btnRellenarStock.setBounds(compradorX, compradorY - 2 * (btnAlto + 10), btnAncho, btnAlto);
+        btnRecogerVuelto.setBounds(compradorX, compradorY + compradorAlto + 5, btnAncho, btnAlto);
     }
 
     private void comprarProducto(int tipo) {
-
-        if (productoEnMano != null){
-            botones.setBotonesHabilitados(false);
+        if (comprador.getEstado() != Comprador.EstadoComprador.SELECCIONAR_PRODUCTO) {
             return;
         }
 
-        ArrayList<ProductoVisual> lista = productosPorTipo.get(tipo);
-        if (lista != null && !lista.isEmpty()) {
-            productoEnMano = lista.remove(lista.size() - 1);
-            remove(productoEnMano);
-            panelComprador.mostrarProducto(productoEnMano.getTipo());
-            revalidate();
-            repaint();
-            botones.setBotonesHabilitados(false);
-        } else {
-            System.out.println("No queda " + Productos.obtenerProducto(tipo));
+        try {
+            comprador.realizarCompra(new ArrayList<>(monedasSeleccionadas), tipo, exp);
+            ArrayList<ProductoVisual> lista = productosPorTipo.get(tipo);
+            if (lista != null && !lista.isEmpty()) {
+                productoEnMano = lista.remove(lista.size() - 1);
+                remove(productoEnMano);
+                revalidate();
+                repaint();
+            }
+            panelComprador.mostrarProducto(tipo);
+            comprador.recogerProducto(exp);
+            actualizarEstado();
+        } catch (PagoInsuficienteException | NoHayProductoException | PagoIncorrectoException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            monedasSeleccionadas.clear();
+            valorInsertado = 0;
+            valorInsertadoLabel.setText("Insertado: $0");
+            comprador.avanzarEstado();
+            actualizarEstado();
         }
-
     }
 
     private void rellenarStock() {
+        exp.rellenarDepositos();
         for (ProductoVisual pv : productos) {
             remove(pv);
         }
-
         inicializarProductos();
         ajustarComponentes();
         revalidate();
         repaint();
+    }
+
+    private void actualizarEstado() {
+        botones.setBotonesHabilitados(comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_PRODUCTO);
+        btnConfirmarCompra.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_MONEDA);
+        btnRecogerVuelto.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.RECOGER_VUELTO);
+        btnAgregarInventario.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.RECOGER_VUELTO && productoEnMano != null);
+        panelInventario.actualizarContadorMonedas(comprador.contarMonedas());
     }
 
     @Override
