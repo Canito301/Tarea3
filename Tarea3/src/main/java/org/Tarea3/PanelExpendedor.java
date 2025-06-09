@@ -80,7 +80,7 @@ public class PanelExpendedor extends JPanel {
                 } else {
                     JOptionPane.showMessageDialog(this, "Inventario lleno.");
                     // Restaurar estado a RECOGER_PRODUCTO si el inventario está lleno
-                    while (comprador.getEstado() != Comprador.EstadoComprador.RECOGER_PRODUCTO) {
+                    while (comprador.getEstado() != EstadoComprador.RECOGER_PRODUCTO) {
                         comprador.avanzarEstado();
                     }
                     actualizarEstado();
@@ -103,7 +103,7 @@ public class PanelExpendedor extends JPanel {
             valorInsertadoLabel.setText("Insertado: $0");
             panelInventario.actualizarContadorMonedas(comprador.contarMonedas());
             // Avanzar hasta SELECCIONAR_MONEDA
-            while (comprador.getEstado() != Comprador.EstadoComprador.SELECCIONAR_MONEDA) {
+            while (comprador.getEstado() != EstadoComprador.SELECCIONAR_MONEDA) {
                 comprador.avanzarEstado();
             }
             actualizarEstado();
@@ -111,7 +111,7 @@ public class PanelExpendedor extends JPanel {
         add(btnRecogerVuelto);
 
         panelInventario.setMonedaListeners(moneda -> {
-            if (comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_MONEDA) {
+            if (comprador.getEstado() == EstadoComprador.SELECCIONAR_MONEDA) {
                 monedasSeleccionadas.add(moneda);
                 valorInsertado += moneda.getValor();
                 valorInsertadoLabel.setText("Insertado: $" + valorInsertado);
@@ -207,7 +207,7 @@ public class PanelExpendedor extends JPanel {
     }
 
     private void seleccionarProducto(int tipo) {
-        if (comprador.getEstado() != Comprador.EstadoComprador.SELECCIONAR_PRODUCTO) {
+        if (comprador.getEstado() != EstadoComprador.SELECCIONAR_PRODUCTO) {
             return;
         }
 
@@ -233,7 +233,7 @@ public class PanelExpendedor extends JPanel {
             valorInsertadoLabel.setText("Insertado: $0");
             panelInventario.actualizarContadorMonedas(comprador.contarMonedas());
             // Avanzar hasta SELECCIONAR_MONEDA
-            while (comprador.getEstado() != Comprador.EstadoComprador.SELECCIONAR_MONEDA) {
+            while (comprador.getEstado() != EstadoComprador.SELECCIONAR_MONEDA) {
                 comprador.avanzarEstado();
             }
             actualizarEstado();
@@ -252,10 +252,10 @@ public class PanelExpendedor extends JPanel {
     }
 
     private void actualizarEstado() {
-        botones.setBotonesHabilitados(comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_PRODUCTO);
-        btnConfirmarCompra.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_MONEDA && !monedasSeleccionadas.isEmpty());
-        btnAgregarInventario.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.RECOGER_PRODUCTO && productoEnMano != null);
-        btnRecogerVuelto.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.RECOGER_VUELTO);
+        botones.setBotonesHabilitados(comprador.getEstado() == EstadoComprador.SELECCIONAR_PRODUCTO);
+        btnConfirmarCompra.setEnabled(comprador.getEstado() == EstadoComprador.SELECCIONAR_MONEDA && !monedasSeleccionadas.isEmpty());
+        btnAgregarInventario.setEnabled(comprador.getEstado() == EstadoComprador.RECOGER_PRODUCTO && productoEnMano != null);
+        btnRecogerVuelto.setEnabled(comprador.getEstado() == EstadoComprador.RECOGER_VUELTO);
         panelInventario.actualizarContadorMonedas(comprador.contarMonedas());
     }
 

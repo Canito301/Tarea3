@@ -32,12 +32,7 @@ public class Comprador {
      * Entero que representa el valor total del vuelto.
      */
     private int vueltoTotal;
-    /**
-     * Enum que define los estados cíclicos del comprador para la interfaz gráfica.
-     */
-    public enum EstadoComprador {
-        SELECCIONAR_MONEDA, SELECCIONAR_PRODUCTO, RECOGER_PRODUCTO, RECOGER_VUELTO
-    }
+
 
     /** Estado actual del comprador para el flujo gráfico. */
     private EstadoComprador estado;
@@ -60,39 +55,6 @@ public class Comprador {
      * @throws PagoIncorrectoException si alguna moneda es nula o inválida.
      */
 
-    public Comprador(ArrayList<Moneda> monedas, int cual, Expendedor exp) throws PagoInsuficienteException, NoHayProductoException, PagoIncorrectoException {
-        vuelto = new ArrayList<>();
-        monedero = new ArrayList<>();
-        estado = null; // No se usan estados en este flujo
-        vueltoTotal = 0;
-        producto = null;
-        // Inicializar monedero con 5 monedas de cada tipo
-        for (int i = 0; i < 5; i++) {
-            monedero.add(new Moneda100());
-            monedero.add(new Moneda500());
-            monedero.add(new Moneda1000());
-        }
-        // Limpia el depósito de vuelto antes de comenzar la compra
-        exp.getVueltoList();
-        exp.comprarProducto(monedas, cual);
-        producto = exp.getDepositoProducto().getProducto();
-        if (monedas == null || monedas.isEmpty() || producto == null) {
-            sonido = null;
-        } else {
-            if (producto instanceof Bebida) {
-                sonido = ((Bebida) producto).beber();
-            } else if (producto instanceof Dulce) {
-                sonido = ((Dulce) producto).comer();
-            }
-        }
-
-        // Obtener la lista de monedas del vuelto (o las monedas originales en caso de error)
-        vuelto = exp.getVueltoList();
-        for (Moneda m : vuelto) {
-            vueltoTotal += m.getValor();
-            monedero.add(m);
-        }
-    }
     /**
      * Constructor para uso gráfico, inicializa el comprador con un monedero infinito.
      */
@@ -205,6 +167,8 @@ public class Comprador {
      *
      * @param exp Expendedor de donde se recoge el producto.
      */
+
+
     public void recogerProducto(Expendedor exp) {
         producto = exp.getDepositoProducto().getProducto();
         if (producto != null) {
@@ -227,6 +191,7 @@ public class Comprador {
      *
      * @param exp Expendedor de donde se recoge el vuelto.
      */
+
     public void recogerVuelto(Expendedor exp) {
         vuelto = exp.getVueltoList();
         for (Moneda m : vuelto) {

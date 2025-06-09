@@ -14,20 +14,18 @@ public class PanelBotones extends JPanel {
     public void crearYReubicarBotones(int anchoPanel, int altoPanel) {
         removeAll();
 
-        int columnas = 2;
-        int filas = 3;
-        int btnWidth = (int) (anchoPanel * 0.45);
-        int btnHeight = (int)(altoPanel * 0.25);
+        int btn_Ancho = (int) (anchoPanel * 0.45);
+        int btn_Alto = (int)(altoPanel * 0.25);
 
         for (int i = 0; i < 5; i++) {
             int columna = i % 2;
             int fila = i / 2;
 
-            int x = columna * (btnWidth + 10);
-            int y = fila * (btnHeight + 10);
+            int x = columna * (btn_Ancho + 10);
+            int y = fila * (btn_Alto + 10);
 
             JButton boton = new JButton(String.valueOf(i + 1));
-            boton.setBounds(x, y, btnWidth, btnHeight);
+            boton.setBounds(x, y, btn_Ancho, btn_Alto);
             boton.setFont(new Font("Comic Sans", Font.BOLD, 15));
             boton.setBackground(Color.GRAY);
             final int tipo = i + 1;

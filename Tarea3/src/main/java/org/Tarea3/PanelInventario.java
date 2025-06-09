@@ -65,7 +65,7 @@ public class PanelInventario extends JPanel {
 
     public void setMonedaListeners(CallbackMoneda callback, Comprador comprador) {
         moneda100.addActionListener(e -> {
-            if (comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_MONEDA) {
+            if (comprador.getEstado() == EstadoComprador.SELECCIONAR_MONEDA) {
                 Moneda m = comprador.sacarMoneda(100);
                 if (m != null) {
                     callback.onMonedaSeleccionada(m);
@@ -74,7 +74,7 @@ public class PanelInventario extends JPanel {
             }
         });
         moneda500.addActionListener(e -> {
-            if (comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_MONEDA) {
+            if (comprador.getEstado() == EstadoComprador.SELECCIONAR_MONEDA) {
                 Moneda m = comprador.sacarMoneda(500);
                 if (m != null) {
                     callback.onMonedaSeleccionada(m);
@@ -83,7 +83,7 @@ public class PanelInventario extends JPanel {
             }
         });
         moneda1000.addActionListener(e -> {
-            if (comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_MONEDA) {
+            if (comprador.getEstado() == EstadoComprador.SELECCIONAR_MONEDA) {
                 Moneda m = comprador.sacarMoneda(1000);
                 if (m != null) {
                     callback.onMonedaSeleccionada(m);
@@ -91,10 +91,6 @@ public class PanelInventario extends JPanel {
                 }
             }
         });
-    }
-
-    public interface CallbackMoneda {
-        void onMonedaSeleccionada(Moneda moneda);
     }
 
     public void actualizarContadorMonedas(ArrayList<Integer> conteo) {

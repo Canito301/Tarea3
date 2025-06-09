@@ -102,16 +102,6 @@ public class Expendedor{
      *
      * @param m la moneda entregada por el usuario.
      */
-    /*
-    public void actualizar(Moneda m){
-        int valor = m.getValor() - precio;
-        int suma = 0;
-        while (suma < valor){
-            Moneda monedan = new Moneda100();
-            monVu.addProducto(monedan);
-            suma += 100;
-        }
-    }*/
 
     /**
      * Realiza la compra de un producto determinado usando una lista de monedas.
