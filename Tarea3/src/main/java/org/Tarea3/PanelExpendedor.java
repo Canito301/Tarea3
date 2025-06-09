@@ -1,4 +1,3 @@
-
 package org.Tarea3;
 
 import javax.swing.*;
@@ -15,9 +14,10 @@ public class PanelExpendedor extends JPanel {
     private final PanelComprador panelComprador;
     private final PanelInventario panelInventario;
 
-    private ProductoVisual productoEnMano;  // Producto que está "afuera"
+    private ProductoVisual productoEnMano;
 
     private final JButton btnAgregarInventario;
+    private final JButton btnRellenarStock;
 
     public PanelExpendedor(Expendedor exp, PanelInventario panelInventario) {
         this.exp = exp;
@@ -25,7 +25,7 @@ public class PanelExpendedor extends JPanel {
 
         imagenExpendedor = UtilsImagen.cargarBuffered("/img/Expendedor.png");
 
-        setLayout(null); // Posicionamiento absoluto
+        setLayout(null);
 
         botones = new PanelBotones();
         botones.setOpaque(false);
@@ -35,7 +35,52 @@ public class PanelExpendedor extends JPanel {
         panelComprador.setOpaque(false);
         add(panelComprador);
 
-        // Crear y agregar productos
+        inicializarProductos();
+
+        botones.setCallback(this::comprarProducto);
+        add(botones);
+
+        btnAgregarInventario = new JButton("Agregar a Inventario");
+        btnAgregarInventario.addActionListener(e -> {
+            if (productoEnMano != null) {
+                boolean agregado = panelInventario.agregarProducto(productoEnMano);
+                if (agregado) {
+                    panelComprador.limpiarProducto();
+                    productoEnMano = null;
+                    revalidate();
+                    repaint();
+                    botones.setBotonesHabilitados(true);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Inventario lleno.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "No hay producto para agregar al inventario.");
+            }
+        });
+        add(btnAgregarInventario);
+
+        // Botón para rellenar stock
+        btnRellenarStock = new JButton("Rellenar Stock");
+        btnRellenarStock.addActionListener(e -> rellenarStock());
+        add(btnRellenarStock);
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                ajustarComponentes();
+            }
+        });
+
+        if (imagenExpendedor != null) {
+            setPreferredSize(new Dimension(imagenExpendedor.getWidth(), imagenExpendedor.getHeight()));
+        } else {
+            setPreferredSize(new Dimension(500, 500));
+        }
+    }
+
+    private void inicializarProductos() {
+        productos.clear();
+        productosPorTipo.clear();
+
         for (int tipo = 1; tipo <= 5; tipo++) {
             ArrayList<ProductoVisual> listaTipo = new ArrayList<>();
             for (int j = 0; j < 5; j++) {
@@ -47,51 +92,11 @@ public class PanelExpendedor extends JPanel {
             }
             productosPorTipo.put(tipo, listaTipo);
         }
-
-        // Asignar comportamiento a botones
-        botones.setCallback(this::comprarProducto);
-        add(botones);
-
-        // Botón para agregar producto a inventario
-        btnAgregarInventario = new JButton("Agregar a Inventario");
-        btnAgregarInventario.addActionListener(e -> {
-            if (productoEnMano != null) {
-                boolean agregado = panelInventario.agregarProducto(productoEnMano);
-                if (agregado) {
-                    panelComprador.limpiarProducto();
-                    productoEnMano = null;
-                    revalidate();
-                    repaint();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Inventario lleno.");
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "No hay producto para agregar al inventario.");
-            }
-        });
-        add(btnAgregarInventario);
-
-        // Redimensionar componentes
-        addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-                ajustarComponentes();
-            }
-        });
-
-        // Tamaño preferido basado en la imagen
-        if (imagenExpendedor != null) {
-            setPreferredSize(new Dimension(imagenExpendedor.getWidth(), imagenExpendedor.getHeight()));
-        } else {
-            setPreferredSize(new Dimension(500, 500)); // fallback
-        }
     }
 
     private void ajustarComponentes() {
         int anchoPanel = getWidth();
         int altoPanel = getHeight();
-
-        int columnas = 5;
-        int filas = 5;
 
         double anchoRel = 0.05;
         double altoRel = 0.101;
@@ -133,25 +138,37 @@ public class PanelExpendedor extends JPanel {
 
         panelComprador.setBounds(compradorX, compradorY, compradorAncho, compradorAlto);
 
-        // Posicionar botón "Agregar a Inventario"
         int btnAncho = 150;
         int btnAlto = 30;
-        int btnX = compradorX;
-        int btnY = compradorY - btnAlto - 10; // arriba del comprador
-        btnAgregarInventario.setBounds(btnX, btnY, btnAncho, btnAlto);
+
+        btnAgregarInventario.setBounds(compradorX, compradorY - btnAlto - 10, btnAncho, btnAlto);
+        btnRellenarStock.setBounds(compradorX, compradorY - 2 * (btnAlto + 10), btnAncho, btnAlto);
     }
 
     private void comprarProducto(int tipo) {
         ArrayList<ProductoVisual> lista = productosPorTipo.get(tipo);
         if (lista != null && !lista.isEmpty()) {
-            productoEnMano = lista.remove(lista.size() - 1); // sacar del expendedor
+            productoEnMano = lista.remove(lista.size() - 1);
             remove(productoEnMano);
             panelComprador.mostrarProducto(productoEnMano.getTipo());
             revalidate();
             repaint();
+            botones.setBotonesHabilitados(false);
         } else {
             System.out.println("No queda " + Productos.obtenerProducto(tipo));
         }
+
+    }
+
+    private void rellenarStock() {
+        for (ProductoVisual pv : productos) {
+            remove(pv);
+        }
+
+        inicializarProductos();
+        ajustarComponentes();
+        revalidate();
+        repaint();
     }
 
     @Override

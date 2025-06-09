@@ -40,4 +40,11 @@ public class PanelBotones extends JPanel {
         revalidate();
         repaint();
     }
+    public void setBotonesHabilitados(boolean habilitado) {
+        for (Component c : getComponents()) {
+            if (c instanceof JButton) {
+                c.setEnabled(habilitado);
+            }
+        }
+    }
 }
