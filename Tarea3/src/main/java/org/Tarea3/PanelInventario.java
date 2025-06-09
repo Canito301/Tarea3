@@ -63,12 +63,6 @@ public class PanelInventario extends JPanel {
         return boton;
     }
 
-    /**
-     * Configura los listeners de los botones de monedas para interactuar con el Comprador.
-     *
-     * @param callback Interfaz para notificar la selección de monedas.
-     * @param comprador Instancia de Comprador para extraer monedas.
-     */
     public void setMonedaListeners(CallbackMoneda callback, Comprador comprador) {
         moneda100.addActionListener(e -> {
             if (comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_MONEDA) {
@@ -99,9 +93,6 @@ public class PanelInventario extends JPanel {
         });
     }
 
-    /**
-     * Interfaz para notificar la selección de monedas.
-     */
     public interface CallbackMoneda {
         void onMonedaSeleccionada(Moneda moneda);
     }

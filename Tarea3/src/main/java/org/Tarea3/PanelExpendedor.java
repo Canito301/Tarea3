@@ -5,13 +5,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
-/**
- * Panel que representa la máquina expendedora y gestiona la interacción con el {@link Comprador}.
- * <p>
- * Muestra los productos, botones de selección, y maneja la compra, recogida de productos y vuelto.
- * Sincroniza el stock visual con las compras y el rellenado de {@link Expendedor}.
- * </p>
- */
 public class PanelExpendedor extends JPanel {
     private final Expendedor exp;
     private final Comprador comprador;
@@ -60,7 +53,7 @@ public class PanelExpendedor extends JPanel {
         btnConfirmarCompra.setBackground(Color.CYAN);
         btnConfirmarCompra.addActionListener(e -> {
             if (!monedasSeleccionadas.isEmpty()) {
-                comprador.avanzarEstado();
+                comprador.avanzarEstado(); // Pasa a SELECCIONAR_PRODUCTO
                 actualizarEstado();
             } else {
                 JOptionPane.showMessageDialog(this, "Inserta al menos una moneda.");
@@ -70,12 +63,13 @@ public class PanelExpendedor extends JPanel {
 
         inicializarProductos();
 
-        botones.setCallback(this::comprarProducto);
+        botones.setCallback(this::seleccionarProducto);
         add(botones);
 
         btnAgregarInventario = new JButton("Agregar a Inventario");
         btnAgregarInventario.addActionListener(e -> {
             if (productoEnMano != null) {
+                comprador.recogerProducto(exp); // Recoge el producto y consume (avanza a RECOGER_VUELTO)
                 boolean agregado = panelInventario.agregarProducto(productoEnMano);
                 if (agregado) {
                     panelComprador.limpiarProducto();
@@ -85,6 +79,11 @@ public class PanelExpendedor extends JPanel {
                     actualizarEstado();
                 } else {
                     JOptionPane.showMessageDialog(this, "Inventario lleno.");
+                    // Restaurar estado a RECOGER_PRODUCTO si el inventario está lleno
+                    while (comprador.getEstado() != Comprador.EstadoComprador.RECOGER_PRODUCTO) {
+                        comprador.avanzarEstado();
+                    }
+                    actualizarEstado();
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "No hay producto para agregar al inventario.");
@@ -103,14 +102,21 @@ public class PanelExpendedor extends JPanel {
             valorInsertado = 0;
             valorInsertadoLabel.setText("Insertado: $0");
             panelInventario.actualizarContadorMonedas(comprador.contarMonedas());
+            // Avanzar hasta SELECCIONAR_MONEDA
+            while (comprador.getEstado() != Comprador.EstadoComprador.SELECCIONAR_MONEDA) {
+                comprador.avanzarEstado();
+            }
             actualizarEstado();
         });
         add(btnRecogerVuelto);
 
         panelInventario.setMonedaListeners(moneda -> {
-            monedasSeleccionadas.add(moneda);
-            valorInsertado += moneda.getValor();
-            valorInsertadoLabel.setText("Insertado: $" + valorInsertado);
+            if (comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_MONEDA) {
+                monedasSeleccionadas.add(moneda);
+                valorInsertado += moneda.getValor();
+                valorInsertadoLabel.setText("Insertado: $" + valorInsertado);
+                actualizarEstado();
+            }
         }, comprador);
 
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -132,7 +138,6 @@ public class PanelExpendedor extends JPanel {
         productos.clear();
         productosPorTipo.clear();
 
-        // Inicializar 5 productos por tipo, sincronizado con Expendedor.rellenarDepositos()
         for (int tipo = 1; tipo <= 5; tipo++) {
             ArrayList<ProductoVisual> listaTipo = new ArrayList<>();
             for (int j = 0; j < 5; j++) {
@@ -201,7 +206,7 @@ public class PanelExpendedor extends JPanel {
         btnRecogerVuelto.setBounds(compradorX, compradorY + compradorAlto + 5, btnAncho, btnAlto);
     }
 
-    private void comprarProducto(int tipo) {
+    private void seleccionarProducto(int tipo) {
         if (comprador.getEstado() != Comprador.EstadoComprador.SELECCIONAR_PRODUCTO) {
             return;
         }
@@ -216,14 +221,21 @@ public class PanelExpendedor extends JPanel {
                 repaint();
             }
             panelComprador.mostrarProducto(tipo);
-            comprador.recogerProducto(exp);
-            actualizarEstado();
-        } catch (PagoInsuficienteException | NoHayProductoException | PagoIncorrectoException e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
             monedasSeleccionadas.clear();
             valorInsertado = 0;
             valorInsertadoLabel.setText("Insertado: $0");
-            comprador.avanzarEstado();
+            actualizarEstado();
+        } catch (PagoInsuficienteException | NoHayProductoException | PagoIncorrectoException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            comprador.recogerVuelto(exp);
+            monedasSeleccionadas.clear();
+            valorInsertado = 0;
+            valorInsertadoLabel.setText("Insertado: $0");
+            panelInventario.actualizarContadorMonedas(comprador.contarMonedas());
+            // Avanzar hasta SELECCIONAR_MONEDA
+            while (comprador.getEstado() != Comprador.EstadoComprador.SELECCIONAR_MONEDA) {
+                comprador.avanzarEstado();
+            }
             actualizarEstado();
         }
     }
@@ -241,9 +253,9 @@ public class PanelExpendedor extends JPanel {
 
     private void actualizarEstado() {
         botones.setBotonesHabilitados(comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_PRODUCTO);
-        btnConfirmarCompra.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_MONEDA);
+        btnConfirmarCompra.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.SELECCIONAR_MONEDA && !monedasSeleccionadas.isEmpty());
+        btnAgregarInventario.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.RECOGER_PRODUCTO && productoEnMano != null);
         btnRecogerVuelto.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.RECOGER_VUELTO);
-        btnAgregarInventario.setEnabled(comprador.getEstado() == Comprador.EstadoComprador.RECOGER_VUELTO && productoEnMano != null);
         panelInventario.actualizarContadorMonedas(comprador.contarMonedas());
     }
 

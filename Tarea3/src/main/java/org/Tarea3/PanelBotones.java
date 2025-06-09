@@ -28,7 +28,7 @@ public class PanelBotones extends JPanel {
 
             JButton boton = new JButton(String.valueOf(i + 1));
             boton.setBounds(x, y, btnWidth, btnHeight);
-            boton.setFont(new Font("Comic Sans",Font.BOLD,15));
+            boton.setFont(new Font("Comic Sans", Font.BOLD, 15));
             boton.setBackground(Color.GRAY);
             final int tipo = i + 1;
             boton.addActionListener(e -> {
@@ -40,6 +40,7 @@ public class PanelBotones extends JPanel {
         revalidate();
         repaint();
     }
+
     public void setBotonesHabilitados(boolean habilitado) {
         for (Component c : getComponents()) {
             if (c instanceof JButton) {
