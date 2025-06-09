@@ -82,8 +82,8 @@ public class ProductoVisual extends JPanel {
 
         contador = new JLabel("1");
         contador.setForeground(Color.WHITE);
-        contador.setFont(new Font("Arial", Font.BOLD, 14));
-        contador.setHorizontalAlignment(JLabel.RIGHT);
+        contador.setFont(new Font("Comic Sans", Font.BOLD, 20));
+        contador.setHorizontalAlignment(JLabel.CENTER);
         contador.setVerticalAlignment(JLabel.BOTTOM);
         add(contador, BorderLayout.SOUTH);
 

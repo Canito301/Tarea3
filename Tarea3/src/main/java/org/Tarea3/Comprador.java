@@ -115,7 +115,29 @@ public class Comprador {
             monedero.add(new Moneda1000());
         }
     }
+    /**
+     * Cuenta la cantidad de monedas de cada tipo en el monedero.
+     *
+     * @return Lista con 3 enteros: [cantidadMonedas100, cantidadMonedas500, cantidadMonedas1000].
+     */
+    public ArrayList<Integer> contarMonedas() {
+        int cant100 = 0;
+        int cant500 = 0;
+        int cant1000 = 0;
 
+        for (Moneda m : monedero) {
+            int valor = m.getValor();
+            if (valor == 100) cant100++;
+            else if (valor == 500) cant500++;
+            else if (valor == 1000) cant1000++;
+        }
+
+        ArrayList<Integer> listaMonedas = new ArrayList<>();
+        listaMonedas.add(cant100);
+        listaMonedas.add(cant500);
+        listaMonedas.add(cant1000);
+        return listaMonedas;
+    }
     /**
      * Saca una moneda del monedero según el valor especificado.
      * <p>
@@ -154,7 +176,7 @@ public class Comprador {
     /**
      * Realiza una compra en el expendedor y actualiza el estado para el flujo gráfico.
      * <p>
-     * Las monedas son proporcionadas por {@link PanelCompradorPrueba} a partir de las selecciones del usuario,
+     * Las monedas son proporcionadas por {@link } a partir de las selecciones del usuario,
      * habiendo sido extraídas del monedero mediante {@link #sacarMoneda(int)}. La validación del pago
      * es real, pudiendo lanzar excepciones como {@link PagoInsuficienteException} si el valor total es
      * menor al precio.

@@ -10,7 +10,7 @@ public class PanelPrincipal extends JPanel {
         setLayout(new BorderLayout());
 
         PanelInventario panelInventario = new PanelInventario();
-        panelInventario.setPreferredSize(new Dimension(300, 0));  // ancho fijo, alto dinámico
+        panelInventario.setPreferredSize(new Dimension(450, 0));  // ancho fijo, alto dinámico
 
         PanelExpendedor panelExpendedor = new PanelExpendedor(exp, panelInventario);
 

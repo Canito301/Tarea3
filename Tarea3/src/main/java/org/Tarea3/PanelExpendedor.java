@@ -123,10 +123,10 @@ public class PanelExpendedor extends JPanel {
             }
         }
 
-        int botonesAncho = anchoPanel / 17;
+        int botonesAncho = anchoPanel / 15;
         int botonesAlto = altoPanel / 7;
-        int botonesX = (int) (anchoPanel * 0.75);
-        int botonesY = (int) (altoPanel * 0.35);
+        int botonesX = (int) (anchoPanel * 0.61);
+        int botonesY = (int) (altoPanel * 0.38);
 
         botones.setBounds(botonesX, botonesY, botonesAncho, botonesAlto);
         botones.crearYReubicarBotones(botonesAncho, botonesAlto);
@@ -141,11 +141,18 @@ public class PanelExpendedor extends JPanel {
         int btnAncho = 150;
         int btnAlto = 30;
 
-        btnAgregarInventario.setBounds(compradorX, compradorY - btnAlto - 10, btnAncho, btnAlto);
+        btnAgregarInventario.setBounds((int)(compradorX * 3.1), compradorY - btnAlto - 5, btnAncho+100, btnAlto+40);
+        btnAgregarInventario.setBackground(Color.white);
         btnRellenarStock.setBounds(compradorX, compradorY - 2 * (btnAlto + 10), btnAncho, btnAlto);
     }
 
     private void comprarProducto(int tipo) {
+
+        if (productoEnMano != null){
+            botones.setBotonesHabilitados(false);
+            return;
+        }
+
         ArrayList<ProductoVisual> lista = productosPorTipo.get(tipo);
         if (lista != null && !lista.isEmpty()) {
             productoEnMano = lista.remove(lista.size() - 1);
