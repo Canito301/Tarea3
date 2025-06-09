@@ -1,3 +1,4 @@
+
 package org.Tarea3;
 
 import javax.swing.*;
@@ -26,5 +27,9 @@ public class PanelComprador extends JPanel {
         } catch (Exception e) {
             System.err.println("Error cargando imagen comprador: " + producto.getRutaDeImagen());
         }
+    }
+
+    public void limpiarProducto() {
+        imagenProducto.setIcon(null);
     }
 }

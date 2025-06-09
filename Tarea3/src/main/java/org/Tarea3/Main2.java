@@ -7,7 +7,8 @@ public class Main2 {
         Expendedor exp = new Expendedor(4);
         JFrame frame = new JFrame("Expendedor Visual");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().add(new PanelExpendedor(exp));
+        frame.getContentPane().add(new PanelPrincipal(exp));
+
         frame.pack();
         frame.setLocationRelativeTo(null); // Centra la ventana
         frame.setVisible(true);

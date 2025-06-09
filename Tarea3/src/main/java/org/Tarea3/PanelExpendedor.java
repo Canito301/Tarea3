@@ -1,3 +1,4 @@
+
 package org.Tarea3;
 
 import javax.swing.*;
@@ -12,9 +13,15 @@ public class PanelExpendedor extends JPanel {
     private final Map<Integer, ArrayList<ProductoVisual>> productosPorTipo = new HashMap<>();
     private final PanelBotones botones;
     private final PanelComprador panelComprador;
+    private final PanelInventario panelInventario;
 
-    public PanelExpendedor(Expendedor exp) {
+    private ProductoVisual productoEnMano;  // Producto que está "afuera"
+
+    private final JButton btnAgregarInventario;
+
+    public PanelExpendedor(Expendedor exp, PanelInventario panelInventario) {
         this.exp = exp;
+        this.panelInventario = panelInventario;
 
         imagenExpendedor = UtilsImagen.cargarBuffered("/img/Expendedor.png");
 
@@ -45,12 +52,38 @@ public class PanelExpendedor extends JPanel {
         botones.setCallback(this::comprarProducto);
         add(botones);
 
+        // Botón para agregar producto a inventario
+        btnAgregarInventario = new JButton("Agregar a Inventario");
+        btnAgregarInventario.addActionListener(e -> {
+            if (productoEnMano != null) {
+                boolean agregado = panelInventario.agregarProducto(productoEnMano);
+                if (agregado) {
+                    panelComprador.limpiarProducto();
+                    productoEnMano = null;
+                    revalidate();
+                    repaint();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Inventario lleno.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "No hay producto para agregar al inventario.");
+            }
+        });
+        add(btnAgregarInventario);
+
         // Redimensionar componentes
         addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentResized(java.awt.event.ComponentEvent evt) {
                 ajustarComponentes();
             }
         });
+
+        // Tamaño preferido basado en la imagen
+        if (imagenExpendedor != null) {
+            setPreferredSize(new Dimension(imagenExpendedor.getWidth(), imagenExpendedor.getHeight()));
+        } else {
+            setPreferredSize(new Dimension(500, 500)); // fallback
+        }
     }
 
     private void ajustarComponentes() {
@@ -60,15 +93,10 @@ public class PanelExpendedor extends JPanel {
         int columnas = 5;
         int filas = 5;
 
-        // Tamaño y espaciado relativo
         double anchoRel = 0.05;
         double altoRel = 0.101;
-
-        //Distancia entre objetos (lo dejé en cero pero nunca se sabe)
         double distanciaEjeX = 0;
         double distanciaEjeY = 0;
-
-        //Estos son para mover el panel.
         double movimientoEjeX = 0.3;
         double movimientoEjeY = 0.2;
 
@@ -104,18 +132,25 @@ public class PanelExpendedor extends JPanel {
         int compradorY = (int) (altoPanel * 0.75);
 
         panelComprador.setBounds(compradorX, compradorY, compradorAncho, compradorAlto);
+
+        // Posicionar botón "Agregar a Inventario"
+        int btnAncho = 150;
+        int btnAlto = 30;
+        int btnX = compradorX;
+        int btnY = compradorY - btnAlto - 10; // arriba del comprador
+        btnAgregarInventario.setBounds(btnX, btnY, btnAncho, btnAlto);
     }
 
     private void comprarProducto(int tipo) {
         ArrayList<ProductoVisual> lista = productosPorTipo.get(tipo);
         if (lista != null && !lista.isEmpty()) {
-            ProductoVisual producto = lista.remove(lista.size() - 1); // último a la derecha
-            remove(producto);
-            panelComprador.mostrarProducto(producto.getTipo());
+            productoEnMano = lista.remove(lista.size() - 1); // sacar del expendedor
+            remove(productoEnMano);
+            panelComprador.mostrarProducto(productoEnMano.getTipo());
             revalidate();
             repaint();
         } else {
-            System.out.println("No queda  "+ Productos.obtenerProducto(tipo));
+            System.out.println("No queda " + Productos.obtenerProducto(tipo));
         }
     }
 
@@ -125,10 +160,5 @@ public class PanelExpendedor extends JPanel {
         if (imagenExpendedor != null) {
             g.drawImage(imagenExpendedor, 0, 0, getWidth(), getHeight(), null);
         }
-    }
-
-    @Override
-    public Dimension getPreferredSize() {
-        return new Dimension(imagenExpendedor.getWidth(), imagenExpendedor.getHeight());
     }
 }
